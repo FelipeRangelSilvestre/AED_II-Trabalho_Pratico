@@ -1,74 +1,82 @@
 # 🚦 Sistema de Trânsito Inteligente (AED II)
 
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Finalizado-success?style=for-the-badge)
+
 Este repositório contém o Trabalho Prático da disciplina de **Algoritmos e Estruturas de Dados II**. O projeto consiste numa simulação de tráfego urbano que integra **Grafos Ponderados** e **Árvores AVL** para calcular rotas ótimas em tempo real, considerando eventos dinâmicos como acidentes e obras.
 
 ---
 
 ## 📋 Sobre o Projeto
 
-O objetivo principal é demonstrar a aplicação prática de estruturas de dados avançadas sem o uso de bibliotecas prontas para a lógica central (como `networkx` ou `pandas`). Todo o algoritmo de grafos e balanceamento de árvore foi implementado "do zero".
+O objetivo principal é demonstrar a aplicação prática de estruturas de dados avançadas **sem o uso de bibliotecas prontas** para a lógica central (como `networkx` ou árvores pré-prontas). Todo o algoritmo de grafos, o Dijkstra e o balanceamento da árvore AVL foram implementados "do zero".
 
 ### 🚀 Funcionalidades Principais
-* **Visualização Gráfica:** Interface interativa (GUI) com uma malha de 10x10 (100+ interseções).
+* **Visualização Gráfica:** Interface interativa (Tkinter) com malha de 10x10 (100+ interseções).
 * **Cálculo de Rotas:** Uso do algoritmo de Dijkstra para encontrar o caminho mais rápido.
 * **Eventos Dinâmicos:** Registro de acidentes ou obras que alteram o "peso" (tempo) das vias.
-* **Integração Automática:** Ao criar um evento, a rota é recalculada automaticamente.
+* **Integração Automática:** Ao criar um evento na AVL, o Grafo é atualizado e a rota recalculada.
 * **Persistência de Dados:** Funcionalidade de Salvar e Carregar o estado do sistema (JSON).
-* **Rotas Alternativas:** Cálculo das K-melhores rotas para fugir do trânsito.
+* **Rotas Alternativas:** Cálculo das K-melhores rotas para sugerir desvios.
 
 ---
 
-## 🧠 Arquitetura e Estruturas de Dados (Guia de Estudo)
+## 📸 Screenshots
 
-Esta seção explica como o código funciona internamente. Utilize isto para estudar para a defesa do projeto.
+*(Adicione aqui prints da tela do seu sistema. Ex: Rota Normal vs. Rota com Acidente)*
+
+| Malha Viária | Rota com Desvio |
+|:---:|:---:|
+| <img src="caminho/para/print1.png" width="400"> | <img src="caminho/para/print2.png" width="400"> |
+
+---
+
+## 🧠 Arquitetura e Complexidade (Guia de Estudo)
+
+Esta seção detalha as escolhas técnicas e a análise de complexidade para a defesa do projeto.
+
+| Estrutura / Algoritmo | Implementação | Complexidade Média | Uso no Projeto |
+| :--- | :--- | :--- | :--- |
+| **Grafo Ponderado** | Lista de Adjacência | $O(V + E)$ (Espaço) | Representa esquinas (V) e ruas (E). O peso é o *tempo*. |
+| **Árvore AVL** | Nó com rotação manual | $O(\log n)$ (Busca/Inserção) | Gerencia eventos ativos. Garante busca rápida por ID. |
+| **Dijkstra** | Com Heap Binária | $O((V + E) \log V)$ | Encontra o caminho de menor tempo (não menor distância). |
 
 ### 1. Grafo Ponderado (`GrafoPonderado`)
-A malha viária é representada por um **Grafo Direcionado e Ponderado**.
-* **Vértices (Nós):** Representam as esquinas/interseções (ex: `R1C1`).
-* **Arestas (Linhas):** Representam as ruas que ligam as esquinas.
-* **Pesos:** O "custo" de passar pela rua. Aqui, o peso é o **Tempo (minutos)**, calculado com base na distância e na velocidade da via.
-
-> **Defesa:** "Utilizamos lista de adjacência (dicionário de dicionários) para representar o grafo, pois é mais eficiente em memória para grafos esparsos do que uma matriz de adjacência."
+Utilizamos **Lista de Adjacência** (dicionário de dicionários) em vez de Matriz de Adjacência.
+> **Justificativa:** Como a malha viária é um grafo esparso (cada esquina tem poucas conexões), a lista economiza memória e torna a iteração sobre vizinhos mais eficiente.
 
 ### 2. Árvore AVL (`ArvoreAVL`)
-Para gerenciar os eventos de trânsito (acidentes, blitz, obras), utilizamos uma **Árvore Binária de Busca Balanceada (AVL)**.
-* **Por que AVL?** Precisamos buscar, inserir e remover eventos rapidamente. Uma lista simples seria lenta (`O(n)`), enquanto a AVL garante performance logarítmica (`O(log n)`).
-* **Chave:** Os eventos são organizados por ID.
+Para gerenciar os eventos, implementamos uma AVL com rotações simples e duplas.
+> **Justificativa:** Precisamos garantir que a busca e remoção de eventos seja rápida mesmo com muitos registros. A AVL mantém a altura controlada em $O(\log n)$, evitando o pior caso $O(n)$ de uma árvore binária comum.
 
-### 3. Algoritmo de Dijkstra
-Para calcular a rota:
-1.  O algoritmo explora o grafo partindo da origem.
-2.  Mantém uma lista de distâncias mínimas conhecidas para cada vértice.
-3.  Utiliza uma **Fila de Prioridade (Heap)** para sempre expandir o caminho mais curto encontrado até o momento.
-4.  Garante a rota matematicamente mais rápida.
-
-### 4. Integração Dinâmica (O Bônus)
-O diferencial do projeto é a comunicação entre o Grafo e a AVL:
-1.  O usuário registra um **Evento** (ex: Acidente).
-2.  O evento é inserido na **AVL**.
-3.  Imediatamente, o sistema localiza a aresta correspondente no **Grafo** e aumenta o seu peso (reduz a velocidade).
-4.  Se uma rota for calculada agora, o **Dijkstra** "perceberá" que aquele caminho está lento e tentará desviar.
+### 3. Integração Dinâmica
+A comunicação entre estruturas segue o padrão Observer:
+1.  Registro de **Evento** na AVL.
+2.  Busca da aresta correspondente no **Grafo**.
+3.  Atualização do **peso da aresta** (ex: velocidade cai de 60km/h para 10km/h).
+4.  O **Dijkstra** lê o novo peso automaticamente na próxima consulta.
 
 ---
 
 ## 🛠️ Instalação e Execução
 
 ### Pré-requisitos
-* Python 3.x instalado.
-* Biblioteca `tkinter` (geralmente já vem com o Python).
+* Python 3.10 ou superior.
+* Biblioteca `tkinter` (Nativa no Windows/Mac. No Linux: `sudo apt-get install python3-tk`).
 
 ### Como Rodar
 1.  Clone o repositório:
     ```bash
-    git clone [https://github.com/SEU_USUARIO/NOME_DO_REPO.git](https://github.com/SEU_USUARIO/NOME_DO_REPO.git)
+    git clone [https://github.com/FelipeRangelSilvestre/AED_II-Trabalho_Pratico.git](https://github.com/FelipeRangelSilvestre/AED_II-Trabalho_Pratico.git)
     ```
 2.  Navegue até a pasta:
     ```bash
-    cd NOME_DO_REPO
+    cd AED_II-Trabalho_Pratico
     ```
 3.  Execute o arquivo principal:
     ```bash
-    python gui_sistema_melhorado.py
+    python sistema_transito_inteligente.py
     ```
 
 ---
@@ -76,24 +84,24 @@ O diferencial do projeto é a comunicação entre o Grafo e a AVL:
 ## 🎮 Guia de Uso
 
 1.  **Menu Arquivo:**
-    * `Salvar Estado`: Salva a malha atual e os eventos num arquivo `.json`.
-    * `Carregar Estado`: Restaura um cenário salvo anteriormente.
+    * `Salvar Estado`: Salva a topologia e eventos em `.json`.
+    * `Carregar Estado`: Restaura um cenário complexo salvo anteriormente.
 2.  **Aba Rotas:**
     * Selecione **Origem** e **Destino**.
-    * Clique em `Calcular Rota` para ver o caminho azul (mais rápido).
-    * Clique em `Mostrar Alternativas` para ver até 3 opções de caminho.
+    * Clique em `Calcular Rota` para ver o trajeto ótimo (Azul).
+    * Clique em `Mostrar Alternativas` para ver opções secundárias (Verde/Laranja).
 3.  **Aba Eventos:**
     * Escolha o tipo (Acidente/Obra/Engarrafamento).
-    * O sistema aplicará a penalidade de velocidade na via selecionada.
-    * Observe como a rota muda de cor ou traçado no mapa!
+    * O sistema aplicará a penalidade na via e atualizará o grafo em tempo real.
 
 ---
 
 ## 📂 Estrutura de Arquivos
 
-* `gui_sistema_melhorado.py`: Código fonte completo (Interface + Lógica).
-* `Relatorio_Tecnico.pdf`: Documentação acadêmica detalhada do projeto.
-* `README.md`: Este guia.
+* `sistema_transito_inteligente.py`: Código fonte completo (Interface + Lógica AVL/Grafo).
+* `Relatorio_Tecnico.pdf`: Documentação acadêmica detalhada.
+* `README.md`: Documentação do repositório.
+* `cenario_exemplo.json`: Arquivo de exemplo para teste de carga (opcional).
 
 ---
 
@@ -103,9 +111,8 @@ O diferencial do projeto é a comunicação entre o Grafo e a AVL:
 * **Marcelo Barros**
 * **Nádia Leão**
 * **Marcos Oliveira**
-* **Pedro**
-
+* **Pedro Jheveson**
 
 ---
 
-*Projeto desenvolvido para a disciplina de AED II - UFAM.*
+*Projeto desenvolvido para a disciplina de AED II - UFAM (ICET).*
